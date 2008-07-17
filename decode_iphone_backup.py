@@ -40,17 +40,26 @@ class data_section:
 		return base64.b64decode("".join(self.data))
 	def write(self):
 		self.path = os.path.join("MobileSyncExport",self.path)
-		thepath, thefile = os.path.split(self.path)
+		thepath, thefile = os.path.split(self.path)       
+		
 		#if the folders don't exists, make 'em
 		if not os.path.exists(thepath):
-			os.makedirs(thepath)
-		output_file = open(self.path, 'wb')
+			os.makedirs(thepath) 
 		
 		# convert from base64
 		if (sys.version[:1] > (2,4)):	
 			output_text = base64.b64decode("".join(self.data))
 		else: 
-			output_text = base64.decodestring("".join(self.data))
+			output_text = base64.decodestring("".join(self.data))		
+
+		if output_text == "":
+			print "No text to output."
+			print "path " + self.path
+			return
+		
+		print "the file:" + thefile	 
+				
+		output_file = open(self.path, 'wb') 
 			
 		output_file.write(output_text)
 		output_file.close()
@@ -70,10 +79,10 @@ class plist_processor(SGMLParser):
 		self.currentkey = ""
 		self.currentdata=data_section()
 		
-	def start_key(self, attrs):
+	def start_key(self, attrs): 
 		self.inkey = 1
 		
-	def end_key(self):
+	def end_key(self):        
 		self.inkey = 0
 		
 	def start_string(self, attrs):
@@ -94,7 +103,10 @@ class plist_processor(SGMLParser):
 	def unknown_endtag(self, tag):
 		#self.handle_data("</%(tag)s>" % locals())
 		return None
-
+    
+	def do_false(self, tag): 
+		return None          
+		
 	def process_key_path(self, text):
 		self.currentdata.path = text
 	
@@ -102,8 +114,13 @@ class plist_processor(SGMLParser):
 		self.currentdata.data.append(text)
 
 	def process_key_string(self,text):
-		self.process_key_data(text)	
+		self.process_key_data(text)	   
 	
+	def process_key_greylist(self,text):       
+		#print "Inkey: " + str(self.inkey) + " key: " + str(self.currentkey)
+		self.currentdata.path = text
+		return None
+	                            
 	def process_key_version(self, text):
 		# We don't need to do anything with the version key.
 		return None
@@ -111,10 +128,10 @@ class plist_processor(SGMLParser):
 	def handle_data(self, text):
 		# called for each block of plain text, i.e. outside of any tag and
 		# not containing any character or entity references
-		# Store the original text verbatim.
+		# Store the original text verbatim.             
 		if self.inkey == 1:
 			self.currentkey = text.lower()	
-			#print "In key: %(text)s" % locals()
+			print "In key: %(text)s" % locals()
 		elif self.indata == 1:
 			try: 
 				key_function = getattr(self,"process_key_%s" % self.currentkey )
@@ -143,7 +160,7 @@ def main(argv):
 	converter = bplist_converter()
 	
 	for filename in args:
-		print filename
+		print "Processing: " + filename
 		parser = plist_processor()
 		plist_name = filename
 		plist_file = open(filename, 'r')
