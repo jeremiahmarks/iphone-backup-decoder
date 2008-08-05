@@ -13,7 +13,13 @@ Created by: IVS
 Create Date: Monday 9th July 2007
 Contact: chat.with.ivs[@t]gmail.com
 
-Thanks to JavaCoderEx, CentroniX, Lixivial for beta testing !
+Thanks to JavaCoderEx, CentroniX, Lixivial for beta testing !    
+
+July 08: 	Updated to fix problems with newer version of iTunes / iPhone
+August 08:	Updated to handle spaces in filenames.  
+			Note: 	The new Third Party Apps files don't seem to be stored in the same folder hierarchy as on the phone.
+				    This could be fixed by cross referencing the file names with the decoded Manifest.plist, but I don't 
+					have time right now.
 """
 
 import base64, os, commands, sys, getopt
@@ -26,7 +32,7 @@ def usage():
 
 class bplist_converter:
 	def decode_bplist(self, plist_filename):
-		decode_command = "plutil -convert xml1 %(plist_filename)s" % locals()
+		decode_command = "plutil -convert xml1 \"%(plist_filename)s\"" % locals()
 		status=os.system(decode_command)
 		if not status == 0:
 			print "Error converting from binary plist using plutil."
